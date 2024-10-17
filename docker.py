@@ -17,13 +17,26 @@ class Container:
         self._process.wait()
         self._docker_id = self._process.stdout.read().strip()
 
+    def await_healthy(self):
+        while True:
+            process = Popen(['docker', 'inspect', '-f="{{.State.Health.Status}}"', self._docker_id], stdout=PIPE, text=True)
+            process.wait()
+            state = process.stdout.read().strip('\n"')
+            match state:
+                case 'healthy':
+                    return
+                case 'starting':
+                    pass
+                case _:
+                    raise Exception(f"Unknown health state [{state}]")
+
     def log(self):
         process = Popen(['docker', 'logs', self._docker_id], stdout=PIPE, text=True)
         process.wait()
         return process.stdout.read()
 
     def remove(self):
-        process = Popen(['docker', 'rm', self._docker_id], stdout=DEVNULL)
+        process = Popen(['docker', 'rm', '-f', self._docker_id], stdout=DEVNULL)
         process.wait()
 
 

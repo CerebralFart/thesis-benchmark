@@ -7,14 +7,10 @@
 [] rdf:type fuseki:Server.
 
 <#> rdf:type fuseki:Service;
-    fuseki:name      "/bsbm";
+    fuseki:name      "bsbm";
     fuseki:endpoint  [
         fuseki:operation fuseki:query;
         fuseki:name "sparql"
-    ];
-    fuseki:endpoint  [
-        fuseki:operation fuseki:query;
-        fuseki:name "query"
     ];
     fuseki:endpoint  [
         fuseki:operation fuseki:gsp_r;
