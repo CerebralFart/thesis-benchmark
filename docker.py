@@ -35,6 +35,11 @@ class Container:
         process.wait()
         return process.stdout.read()
 
+    def pid(self):
+        process = Popen(['docker', 'inspect', '-f="{{.State.Pid}}"', self._docker_id], stdout=PIPE, text=True)
+        process.wait()
+        return process.stdout.read().strip('"\n')
+
     def remove(self):
         process = Popen(['docker', 'rm', '-f', self._docker_id], stdout=DEVNULL)
         process.wait()
