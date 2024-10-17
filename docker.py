@@ -1,6 +1,12 @@
 from subprocess import DEVNULL, PIPE, Popen
 
 
+def build(folder, tag):
+    process = Popen(['docker', 'build', f'-t={tag}', folder], stdout=PIPE, stderr=PIPE, text=True)
+    process.wait()
+    return process.stderr.read()
+
+
 class Container:
     def __init__(self, opts):
         self._process = Popen(['docker', 'run', '-d'] + opts.split(" "),
