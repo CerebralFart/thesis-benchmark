@@ -38,7 +38,8 @@ for dataset in datasets:
         if 'volumes' in engine_config:
             config_array.extend([f'-v={local}:{mount}:ro' for mount, local in engine_config['volumes'].items()])
 
-        engine = Container(' '.join(config_array) + ' ' + engine_config["tag"])
+        config_array.append(engine_config['tag'])
+        engine = Container(config_array)
         engine_pid = engine.pid()
         engine.await_healthy()
 

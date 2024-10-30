@@ -15,7 +15,10 @@ def get_running_containers():
 
 class Container:
     def __init__(self, opts):
-        self._process = Popen(['docker', 'run', '-d'] + opts.split(" "),
+        if type(opts) == str:
+            opts = opts.split(" ")
+
+        self._process = Popen(['docker', 'run', '-d'] + opts,
                               stderr=PIPE,
                               stdout=PIPE,
                               text=True,
