@@ -6,9 +6,9 @@ preferred_engine = 'fuseki'
 
 engines = {
     'fuseki': {
+        'endpoint': '/bsbm/sparql',
         'port': 3030,
-        'tag': None
-    }
+    },
 }
 
 for engine in engines:

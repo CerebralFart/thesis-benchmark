@@ -7,6 +7,12 @@ def build(folder, tag):
     return process.stderr.read()
 
 
+def get_running_containers():
+    process = Popen(['docker', 'ps', '-aq'], stdout=PIPE, text=True)
+    process.wait()
+    result = process.stdout.read().strip()
+    return [] if result == '' else result.split("\n")
+
 class Container:
     def __init__(self, opts):
         self._process = Popen(['docker', 'run', '-d'] + opts.split(" "),
