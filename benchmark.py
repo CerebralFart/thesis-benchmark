@@ -38,6 +38,10 @@ for dataset in datasets:
         engine_pid = engine.pid()
         engine.await_healthy()
 
+        if 'post_launch' in engine_config:
+            for cmd in engine_config['post_launch']:
+                print(cmd, engine.exec(cmd))
+
         print(f'Engine [{engine_name}] is healthy, starting tests')
         for query in queries:
             print(f'Evaluating [{query["type"]}]')

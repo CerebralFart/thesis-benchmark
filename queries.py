@@ -42,7 +42,7 @@ queries = {
             }
             GROUP BY ?type ?feature1 ?feature2
             HAVING (COUNT(*) >= 10)
-            ORDER BY SHA512(?product)
+            ORDER BY SHA512(?type)
         """,
     },
     "bsbm-02": {
@@ -233,7 +233,7 @@ queries = {
 def execute_query(url, query):
     response = requests.post(
         url,
-        headers={'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'},
+        headers={'Accept': 'application/sparql-results+json', 'Content-Type': 'application/x-www-form-urlencoded'},
         data={'query': query},
     )
     if response.status_code == 200:
