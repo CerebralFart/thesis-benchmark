@@ -6,7 +6,7 @@ from file import TSV
 jiffy_duration_ms = 1000 / os.sysconf("SC_CLK_TCK")
 repetitions = 10
 warmup = 5
-results = TSV("results.tsv", ["engine", "dataset", "query", "repetition", "time (ms)"])
+results = TSV("results.tsv", ["engine", "dataset", "query", "repetition", "time (ms)", "result length (b)"])
 
 print("== SYSTEM INFORMATION ==")
 print(f"Jiffy duration: {jiffy_duration_ms}ms")
@@ -47,7 +47,7 @@ for dataset in datasets:
         for query in queries:
             print(f'Evaluating [{query["type"]}]')
             stat_pre = stat(engine_pid)
-            result = execute_query(f"http://127.0.0.1:8000/{engine_config['endpoint'].lstrip('/')}", query['query'])
+            result = execute_query(f"http://127.0.0.1:8000/{engine_config['endpoint'].lstrip('/')}", query['query']).text
             stat_post = stat(engine_pid)
 
             if query['repetition'] >= warmup:
@@ -55,7 +55,7 @@ for dataset in datasets:
                         stat_post['stime'] - stat_pre['stime'] +
                         stat_post['cutime'] - stat_pre['cutime'] +
                         stat_post['cstime'] - stat_pre['cstime']) * jiffy_duration_ms
-                results.write([engine_name, dataset, query["type"], query["repetition"] - warmup, time])
+                results.write([engine_name, dataset, query["type"], query["repetition"] - warmup, time, len(result)])
 
         print(f'Testing done on [{engine_name}], shutting down')
         engine.remove()
