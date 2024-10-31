@@ -38,3 +38,17 @@ for engine in engines:
     print(f'Building engine [{engine}]')
     build(f'{os.getcwd()}/engines/{engine}', tag)
     engines[engine]['tag'] = tag
+
+    config = engines[engine]
+    config_array = [f'-p=8000:{config["port"]}', '--memory=96g', '--shm-size=96g']
+    if 'env' in config:
+        config_array.extend([f'-e{key}={value}' for key, value in config['env'].items()])
+
+    if 'volumes' in config:
+        config_array.extend([f'-v={local}:{mount}:ro' for mount, local in config['volumes'].items()])
+
+    config_array.append(config['tag'])
+    if 'args' in config:
+        config_array.extend(config['args'])
+
+    engines[engine]['config'] = config_array

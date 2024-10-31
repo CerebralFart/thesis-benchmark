@@ -57,7 +57,7 @@ class Container:
         return process.stdout.read().strip('"\n')
 
     def remove(self):
-        process = Popen(['docker', 'rm', '-f', self._docker_id], stdout=DEVNULL)
+        process = Popen(['docker', 'rm', '-fv', self._docker_id], stdout=DEVNULL)
         process.wait()
 
 

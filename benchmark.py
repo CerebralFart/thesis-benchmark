@@ -34,12 +34,7 @@ for dataset in datasets:
     for engine_name in engines:
         print(f'Running tests for [{dataset}] on [{engine_name}]')
         engine_config = engines[engine_name]
-        config_array = [f'-p=8000:{engine_config["port"]}', f'-v={dataset}:/dataset.ttl:ro']
-        if 'volumes' in engine_config:
-            config_array.extend([f'-v={local}:{mount}:ro' for mount, local in engine_config['volumes'].items()])
-
-        config_array.append(engine_config['tag'])
-        engine = Container(config_array)
+        engine = Container([f'-v={dataset}:/{engine_config["data_mount_point"]}:ro'] + engine_config['config'])
         engine_pid = engine.pid()
         engine.await_healthy()
 

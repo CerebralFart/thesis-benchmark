@@ -243,19 +243,21 @@ def execute_query(url, query):
 
 
 def get_query_mix(dataset, repetitions):
-    engine_config = engines[preferred_engine]
-    database = Container(f'-p=8000:{engine_config["port"]} -v={dataset}:/dataset.ttl:ro {engine_config["tag"]}')
+    config = engines[preferred_engine]
+    database = Container([f'-v={dataset}:/{config["data_mount_point"]}:ro'] + config['config'])
     database.await_healthy()
 
     try:
         bindings = {}
         for query_name, query_data in queries.items():
+            print(f"Getting bindings for [{query_name}]")
             result = execute_query(
-                "http://127.0.0.1:8000/bsbm/sparql",
+                f"http://127.0.0.1:8000/{config['endpoint'].lstrip('/')}",
                 query_data['bindings'] + f" LIMIT {repetitions}"
             ).json()['results']['bindings']
             bindings[query_name] = itertools.cycle([{key: value['value'] for (key, value) in binding.items()} for binding in result])
 
+        print(f"Substituting bindings")
         bound_queries = []
         for i in range(repetitions):
             for query_name in queries:
