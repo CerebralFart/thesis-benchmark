@@ -39,6 +39,13 @@ class Container:
                 case _:
                     raise Exception(f"Unknown health state [{state}]")
 
+    def exec(self, cmd):
+        if type(cmd) == str:
+            cmd = cmd.split(' ')
+        process = Popen(['docker', 'exec', self._docker_id] + cmd, stdout=PIPE, text=True)
+        process.wait()
+        return process.stdout.read().strip('\n"')
+
     def log(self):
         process = Popen(['docker', 'logs', self._docker_id], stdout=PIPE, text=True)
         process.wait()

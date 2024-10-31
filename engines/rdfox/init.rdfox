@@ -1,0 +1,7 @@
+dstore create bsbm
+active bsbm
+dsprop set invalid-literal-policy as-string
+import /data/dataset.ttl
+
+role create guest
+grant privileges read > to guest

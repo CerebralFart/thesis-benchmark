@@ -6,7 +6,7 @@ from file import TSV
 jiffy_duration_ms = 1000 / os.sysconf("SC_CLK_TCK")
 repetitions = 10
 warmup = 5
-results = TSV("results-repetitions.tsv", ["engine", "dataset", "query", "repetition", "time (ms)"])
+results = TSV("results.tsv", ["engine", "dataset", "query", "repetition", "time (ms)"])
 
 print("== SYSTEM INFORMATION ==")
 print(f"Jiffy duration: {jiffy_duration_ms}ms")

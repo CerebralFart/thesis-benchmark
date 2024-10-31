@@ -143,18 +143,19 @@ queries = {
             } ORDER BY SHA512(?product)
         """,
     },
-    "bsbm-09": {
-        "query": prefix + """
-            DESCRIBE ?reviewer WHERE {
-                <%review> rev:reviewer ?reviewer
-            }
-        """,
-        "bindings": prefix + """
-            SELECT ?review WHERE {
-                ?review rdf:type bsbm:Review.
-            } ORDER BY SHA512(?review)
-        """,
-    },
+    # Disabled because not all engines support DESCRIBE queries
+    # "bsbm-09": {
+    #     "query": prefix + """
+    #         DESCRIBE ?reviewer WHERE {
+    #             <%review> rev:reviewer ?reviewer
+    #         }
+    #     """,
+    #     "bindings": prefix + """
+    #         SELECT ?review WHERE {
+    #             ?review rdf:type bsbm:Review.
+    #         } ORDER BY SHA512(?review)
+    #     """,
+    # },
     "bsbm-10": {
         "query": prefix + """
             SELECT DISTINCT ?offer ?price WHERE {
