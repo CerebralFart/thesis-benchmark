@@ -1,6 +1,7 @@
 import itertools
 import requests
 import time
+import urllib.parse
 
 from datasets import datasets
 from docker import Container
@@ -338,7 +339,11 @@ queries = {
 }
 
 
-def execute_query(url, query):
+def execute_query(url, query, url_params=None):
+    if url_params is not None:
+        infix = '&' if '?' in url else '?'
+        url += infix + '&'.join([f"{urllib.parse.quote(key)}={urllib.parse.quote(value)}" for key, value in url_params.items()])
+
     response = requests.post(
         url,
         headers={'Accept': 'application/sparql-results+json', 'Content-Type': 'application/x-www-form-urlencoded'},
