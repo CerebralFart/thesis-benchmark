@@ -75,6 +75,81 @@ queries = {
             } ORDER BY SHA512(?product)
         """,
     },
+    "bsbm-03": {
+        "query": prefix + """
+            SELECT ?product ?label WHERE {
+                ?product rdfs:label ?label.
+                ?product rdf:type <%type>.
+                ?product bsbm:productFeature <%feature1>.
+                ?product bsbm:productPropertyNumeric1 ?p1.
+                FILTER (?p1 > %x)
+                ?product bsbm:productPropertyNumeric3 ?p3.
+                FILTER (?p3 < %y)
+                OPTIONAL {
+                    ?product bsbm:productFeature <%feature2>.
+                    ?product rdfs:label ?testVar
+                }
+                FILTER (!BOUND(?testVar))
+            }
+            ORDER BY ?label
+            LIMIT 10
+        """,
+        "bindings": prefix + """
+            SELECT ?type ?feature1 ?feature2 ?x ?y WHERE {
+	            ?product rdf:type bsbm:Product.
+              	?product rdf:type ?type.
+  	            FILTER(?type != bsbm:Product)
+  	            { SELECT ?feature1 WHERE {
+                    ?product bsbm:productFeature ?feature1.
+                } LIMIT 1 }
+  	            { SELECT ?feature2 WHERE {
+                    ?feature2 rdf:type bsbm:ProductFeature.
+                    FILTER NOT EXISTS { ?product bsbm:productFeature ?feature2. }
+                } LIMIT 1 }
+  	            ?product bsbm:productPropertyNumeric1 ?p1.
+                ?product bsbm:productPropertyNumeric3 ?p3.
+  	            BIND(?p1 * 0.5 AS ?x)
+  	            BIND(?p3 * 1.5 AS ?y)
+            } ORDER BY SHA512(?product)
+        """,
+    },
+    "bsbm-04": {
+        "query": prefix + """
+            SELECT ?product ?label WHERE {
+                {
+                    ?product rdfs:label ?label.
+                    ?product rdf:type <%type>.
+                    ?product bsbm:productFeature <%feature1>.
+                    ?product bsbm:productFeature <%feature2>.
+                    ?product bsbm:productPropertyNumeric1 ?p1.
+                    FILTER (?p1 > %x)
+                } UNION {
+                    ?product rdfs:label ?label.
+                    ?product rdf:type <%type>.
+                    ?product bsbm:productFeature <%feature1>.
+                    ?product bsbm:productFeature <%feature3>.
+                    ?product bsbm:productPropertyNumeric2 ?p2.
+                    FILTER (?p2 > %y)
+                }
+            }
+            ORDER BY ?label
+            LIMIT 10 OFFSET 10
+        """,
+        "bindings": prefix + """
+            SELECT ?feature1 ?feature2 ?feature3 ?x ?y WHERE {
+                ?feature1 rdf:type bsbm:ProductFeature.
+                ?feature2 rdf:type bsbm:ProductFeature.
+                ?feature3 rdf:type bsbm:ProductFeature.
+              
+                FILTER(?feature1 != ?feature2 && ?feature2 != ?feature3 && ?feature1 != ?feature3)
+                FILTER EXISTS {?product bsbm:productFeature ?feature1, ?feature2}
+                FILTER EXISTS {?product bsbm:productFeature ?feature1, ?feature3}
+              
+                BIND(1000 AS ?x)
+                BIND(1000 AS ?y)
+            }
+        """,
+    },
     "bsbm-05": {
         "query": prefix + """
             SELECT DISTINCT ?product ?productLabel WHERE {
@@ -114,6 +189,37 @@ queries = {
                 FILTER(?word != "")
             }
             ORDER BY RAND()
+        """,
+    },
+    "bsbm-07": {
+        "query": prefix + """
+            SELECT ?productLabel ?offer ?price ?vendor ?vendorTitle ?review ?revTitle ?reviewer ?revName ?rating1 ?rating2
+            WHERE {
+                <%product> rdfs:label ?productLabel.
+                OPTIONAL {
+                    ?offer bsbm:product <%product>.
+                    ?offer bsbm:price ?price.
+                    ?offer bsbm:vendor ?vendor.
+                    ?vendor rdfs:label ?vendorTitle.
+                    ?vendor bsbm:country <http://downlode.org/rdf/iso-3166/countries#DE>.
+                    ?offer dc:publisher ?vendor.
+                    ?offer bsbm:validTo ?date.
+                    FILTER (?date > "%date"^^xsd:dateTime)
+                }
+                OPTIONAL {
+                    ?review bsbm:reviewFor <%product>.
+                    ?review rev:reviewer ?reviewer.
+                    ?reviewer foaf:name ?revName.
+                    ?review dc:title ?revTitle.
+                    OPTIONAL { ?review bsbm:rating1 ?rating1. }
+                    OPTIONAL { ?review bsbm:rating2 ?rating2. }
+                }
+            }
+        """,
+        "bindings": prefix + """
+            SELECT ?product WHERE {
+                ?product rdf:type bsbm:Product.
+            }
         """,
     },
     "bsbm-08": {
@@ -167,7 +273,7 @@ queries = {
                 FILTER (?deliveryDays <= 3)
                 ?offer bsbm:price ?price.
                 ?offer bsbm:validTo ?date.
-                FILTER (?date > "%currentDate"^^xsd:dateTime)
+                FILTER (?date > "%date"^^xsd:dateTime)
             }
             ORDER BY xsd:double(str(?price))
             LIMIT 10
@@ -197,36 +303,37 @@ queries = {
             } ORDER BY SHA512(?offer)
         """,
     },
-    "bsbm-12": {
-        "query": prefix + """
-            PREFIX bsbm-export: <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/export/>
-            CONSTRUCT {
-                <%offer> bsbm-export:product ?productURI.
-                <%offer> bsbm-export:productlabel ?productlabel.
-                <%offer> bsbm-export:vendor ?vendorname.
-                <%offer> bsbm-export:vendorhomepage ?vendorhomepage.
-                <%offer> bsbm-export:offerURL ?offerURL.
-                <%offer> bsbm-export:price ?price.
-                <%offer> bsbm-export:deliveryDays ?deliveryDays.
-                <%offer> bsbm-export:validuntil ?validTo.
-            } WHERE {
-                <%offer> bsbm:product ?productURI.
-                ?productURI rdfs:label ?productlabel.
-                <%offer> bsbm:vendor ?vendorURI.
-                ?vendorURI rdfs:label ?vendorname.
-                ?vendorURI foaf:homepage ?vendorhomepage.
-                <%offer> bsbm:offerWebpage ?offerURL.
-                <%offer> bsbm:price ?price.
-                <%offer> bsbm:deliveryDays ?deliveryDays.
-                <%offer> bsbm:validTo ?validTo.
-            }
-        """,
-        "bindings": prefix + """
-            SELECT ?offer WHERE {
-                ?offer rdf:type bsbm:Offer.
-            } ORDER BY SHA512(?offer)
-        """,
-    },
+    # Disabled because not all engines support CONSTRUCT queries
+    # "bsbm-12": {
+    #     "query": prefix + """
+    #         PREFIX bsbm-export: <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/export/>
+    #         CONSTRUCT {
+    #             <%offer> bsbm-export:product ?productURI.
+    #             <%offer> bsbm-export:productlabel ?productlabel.
+    #             <%offer> bsbm-export:vendor ?vendorname.
+    #             <%offer> bsbm-export:vendorhomepage ?vendorhomepage.
+    #             <%offer> bsbm-export:offerURL ?offerURL.
+    #             <%offer> bsbm-export:price ?price.
+    #             <%offer> bsbm-export:deliveryDays ?deliveryDays.
+    #             <%offer> bsbm-export:validuntil ?validTo.
+    #         } WHERE {
+    #             <%offer> bsbm:product ?productURI.
+    #             ?productURI rdfs:label ?productlabel.
+    #             <%offer> bsbm:vendor ?vendorURI.
+    #             ?vendorURI rdfs:label ?vendorname.
+    #             ?vendorURI foaf:homepage ?vendorhomepage.
+    #             <%offer> bsbm:offerWebpage ?offerURL.
+    #             <%offer> bsbm:price ?price.
+    #             <%offer> bsbm:deliveryDays ?deliveryDays.
+    #             <%offer> bsbm:validTo ?validTo.
+    #         }
+    #     """,
+    #     "bindings": prefix + """
+    #         SELECT ?offer WHERE {
+    #             ?offer rdf:type bsbm:Offer.
+    #         } ORDER BY SHA512(?offer)
+    #     """,
+    # },
 }
 
 
