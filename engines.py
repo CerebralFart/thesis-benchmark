@@ -5,6 +5,14 @@ from docker import build
 preferred_engine = 'fuseki'
 
 engines = {
+    'blazegraph': {
+        'data_mount_point': '/dataset.ttl',
+        'endpoint': '/blazegraph/namespace/kb/sparql',
+        'port': 9999,
+        'post_launch': [
+            ['java', '-cp', '*:*.jar', 'com.bigdata.rdf.store.DataLoader', '-verbose', '/journal.properties', '/dataset.ttl']
+        ],
+    },
     'fuseki': {
         'data_mount_point': '/dataset.ttl',
         'endpoint': '/bsbm/sparql',
