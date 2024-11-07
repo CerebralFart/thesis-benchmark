@@ -1,4 +1,4 @@
-FROM oxfordsemantic/rdfox:7.2
+FROM oxfordsemantic/rdfox:7.2a
 
 USER root
 RUN apt update && apt install -y curl
