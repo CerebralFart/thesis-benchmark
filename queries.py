@@ -1,5 +1,6 @@
 import itertools
 import requests
+import time
 
 from datasets import datasets
 from docker import Container
@@ -352,7 +353,10 @@ def execute_query(url, query):
 def get_query_mix(dataset, repetitions):
     config = engines[preferred_engine]
     database = Container([f'-v={dataset}:/{config["data_mount_point"]}:ro'] + config['config'])
-    database.await_healthy()
+    if 'healthcheck' not in config or config['healthcheck'] is True:
+        database.await_healthy()
+    else:
+        time.sleep(10)
 
     try:
         bindings = {}
