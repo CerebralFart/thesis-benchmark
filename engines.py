@@ -26,6 +26,7 @@ engines = {
             'RDFOX_ROLE': 'admin',
             'RDFOX_PASSWORD': 'admin',
         },
+        'excluded_datasets': ['BSBM 100M', 'BSBM 1B', 'BSBM 10B'],
         'port': 12110,
         'volumes': {
             '/opt/RDFox/RDFox.lic': f'{os.getcwd()}/engines/rdfox/rdfox.license',

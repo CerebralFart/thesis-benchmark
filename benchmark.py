@@ -33,8 +33,12 @@ for dataset in datasets:
     queries = get_query_mix(dataset, repetitions + warmup)
 
     for engine_name in engines:
-        print(f'Running tests for [{dataset}] on [{engine_name}]')
         engine_config = engines[engine_name]
+        if 'excluded_datasets' in engine_config and dataset_name in engine_config['excluded_datasets']:
+            print(f'Skipping [{dataset_path}] for [{engine_name}]')
+            continue
+
+        print(f'Running tests for [{dataset}] on [{engine_name}]')
         engine = Container([f'-v={dataset}:/{engine_config["data_mount_point"]}:ro'] + engine_config['config'])
         engine_pid = engine.pid()
         if 'healthcheck' not in engine_config or engine_config['healthcheck'] is True:
