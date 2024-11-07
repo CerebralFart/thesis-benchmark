@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 from file import TSV
 
@@ -36,7 +37,10 @@ for dataset in datasets:
         engine_config = engines[engine_name]
         engine = Container([f'-v={dataset}:/{engine_config["data_mount_point"]}:ro'] + engine_config['config'])
         engine_pid = engine.pid()
-        engine.await_healthy()
+        if 'healthcheck' not in engine_config or engine_config['healthcheck'] is True:
+            engine.await_healthy()
+        else:
+            time.sleep(10)
 
         if 'post_launch' in engine_config:
             for cmd in engine_config['post_launch']:
