@@ -28,9 +28,9 @@ from engines import engines
 from os_helpers import stat
 from queries import execute_query, get_query_mix
 
-for dataset in datasets:
-    print(f'Binding queries for [{dataset}]')
-    queries = get_query_mix(dataset, repetitions + warmup)
+for dataset_name, dataset_path in datasets.items():
+    print(f'Binding queries for [{dataset_name}]')
+    queries = get_query_mix(dataset_path, repetitions + warmup)
 
     for engine_name in engines:
         engine_config = engines[engine_name]
@@ -38,8 +38,8 @@ for dataset in datasets:
             print(f'Skipping [{dataset_path}] for [{engine_name}]')
             continue
 
-        print(f'Running tests for [{dataset}] on [{engine_name}]')
-        engine = Container([f'-v={dataset}:/{engine_config["data_mount_point"]}:ro'] + engine_config['config'])
+        print(f'Running tests for [{dataset_name}] on [{engine_name}]')
+        engine = Container([f'-v={dataset_path}:/{engine_config["data_mount_point"]}:ro'] + engine_config['config'])
         engine_pid = engine.pid()
         if 'healthcheck' not in engine_config or engine_config['healthcheck'] is True:
             engine.await_healthy()
@@ -62,7 +62,7 @@ for dataset in datasets:
                         stat_post['stime'] - stat_pre['stime'] +
                         stat_post['cutime'] - stat_pre['cutime'] +
                         stat_post['cstime'] - stat_pre['cstime']) * jiffy_duration_ms
-                results.write([engine_name, dataset, query["type"], query["repetition"] - warmup, time, len(result)])
+                results.write([engine_name, dataset_name, query["type"], query["repetition"] - warmup, time, len(result)])
 
         print(f'Testing done on [{engine_name}], shutting down')
         engine.remove()
