@@ -348,6 +348,7 @@ def execute_query(url, query, url_params=None):
         url,
         headers={'Accept': 'application/sparql-results+json', 'Content-Type': 'application/x-www-form-urlencoded'},
         data={'query': query},
+        timeout=900, # Fifteen minutes
     )
     if response.status_code == 200:
         return response
