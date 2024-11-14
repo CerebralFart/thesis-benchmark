@@ -52,7 +52,7 @@ for dataset_name, dataset_path in datasets.items():
 
         if 'post_launch' in engine_config:
             for cmd in engine_config['post_launch']:
-                print(cmd, engine.exec(cmd))
+                engine.exec(cmd)
 
         print(f'Engine [{engine_name}] is healthy, starting tests')
         for mode in ['plain', 'preselection', 'rewriting']:
