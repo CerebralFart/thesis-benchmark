@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 import time
 
@@ -54,7 +55,8 @@ for dataset_name, dataset_path in datasets.items():
         for query in queries:
             print(f'Evaluating [{query["type"]}]')
             stat_pre = stat(engine_pid)
-            result = execute_query(f"http://127.0.0.1:8000/{engine_config['endpoint'].lstrip('/')}", query['query']).text
+            user_id = random.randint(1, 30)
+            result = execute_query(f"http://127.0.0.1:8000/{engine_config['endpoint'].lstrip('/')}", query['query'], {'user': f'http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromVendor{user_id}/Vendor{user_id}'}).text
             stat_post = stat(engine_pid)
 
             if query['repetition'] >= warmup:
