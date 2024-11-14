@@ -6,9 +6,9 @@ import time
 from file import TSV
 
 jiffy_duration_ms = 1000 / os.sysconf("SC_CLK_TCK")
-repetitions = 10
+repetitions = 20
 warmup = 5
-results = TSV("results.tsv", ["engine", "dataset", "query", "repetition", "time (ms)", "result length (b)"])
+results = TSV("results.tsv", ["engine", "dataset", "query", "mode", "repetition", "resolver (ms)", "proxy (ms)", "result length (b)"])
 
 print("== SYSTEM INFORMATION ==")
 print(f"Jiffy duration: {jiffy_duration_ms}ms")
@@ -17,7 +17,7 @@ print(f"Repetitions:    {repetitions}")
 print(f"Warmup:         {warmup}")
 print()
 
-from docker import Container, get_running_containers
+from docker import Container, get_running_containers, build
 
 containers = get_running_containers()
 if len(containers) > 0:
@@ -28,6 +28,9 @@ from datasets import datasets
 from engines import engines
 from os_helpers import stat
 from queries import execute_query, get_query_mix
+
+build(f"{os.getcwd()}/proxy", "benchmark/proxy")
+proxy = Container(["-p=8080:8080", "--net=host", "benchmark/proxy"])
 
 for dataset_name, dataset_path in datasets.items():
     print(f'Binding queries for [{dataset_name}]')
@@ -52,19 +55,29 @@ for dataset_name, dataset_path in datasets.items():
                 print(cmd, engine.exec(cmd))
 
         print(f'Engine [{engine_name}] is healthy, starting tests')
-        for query in queries:
-            print(f'Evaluating [{query["type"]}]')
-            stat_pre = stat(engine_pid)
-            user_id = random.randint(1, 30)
-            result = execute_query(f"http://127.0.0.1:8000/{engine_config['endpoint'].lstrip('/')}", query['query'], {'user': f'http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromVendor{user_id}/Vendor{user_id}'}).text
-            stat_post = stat(engine_pid)
+        for mode in ['plain', 'preselection', 'rewriting']:
+            print(f"Evaluating mode [{mode}]")
+            for query in queries:
+                print(f'Evaluating [{query["type"]}]')
+                engine_pre = stat(engine_pid)
+                proxy_pre = stat(proxy.pid())
+                user_id = random.randint(1, 30)
+                result = execute_query(f"http://127.0.0.1:8080/{engine_config['endpoint'].lstrip('/')}", query['query'], {'mode': mode, 'user': f'http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromVendor{user_id}/Vendor{user_id}'}).text
+                engine_post = stat(engine_pid)
+                proxy_post = stat(proxy.pid())
 
-            if query['repetition'] >= warmup:
-                time = (stat_post['utime'] - stat_pre['utime'] +
-                        stat_post['stime'] - stat_pre['stime'] +
-                        stat_post['cutime'] - stat_pre['cutime'] +
-                        stat_post['cstime'] - stat_pre['cstime']) * jiffy_duration_ms
-                results.write([engine_name, dataset_name, query["type"], query["repetition"] - warmup, time, len(result)])
+                if query['repetition'] >= warmup:
+                    engine_time = (engine_post['utime'] - engine_pre['utime'] +
+                                   engine_post['stime'] - engine_pre['stime'] +
+                                   engine_post['cutime'] - engine_pre['cutime'] +
+                                   engine_post['cstime'] - engine_pre['cstime']) * jiffy_duration_ms
+                    proxy_time = (proxy_post['utime'] - proxy_pre['utime'] +
+                                  proxy_post['stime'] - proxy_pre['stime'] +
+                                  proxy_post['cutime'] - proxy_pre['cutime'] +
+                                  proxy_post['cstime'] - proxy_pre['cstime']) * jiffy_duration_ms
+                    results.write([engine_name, dataset_name, query["type"], mode, query["repetition"] - warmup, engine_time, proxy_time, len(result)])
 
         print(f'Testing done on [{engine_name}], shutting down')
         engine.remove()
+
+proxy.remove()
