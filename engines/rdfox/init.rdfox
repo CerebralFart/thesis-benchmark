@@ -1,6 +1,6 @@
 dstore create bsbm
 active bsbm
-dsprop set invalid-literal-policy as-string
+dsprop set invalid-literal-policy as-string-silent
 import /data/dataset.ttl
 
 role create guest
