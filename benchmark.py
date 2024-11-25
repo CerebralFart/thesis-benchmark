@@ -39,7 +39,7 @@ for dataset_name, dataset_path in datasets.items():
     for engine_name in engines:
         engine_config = engines[engine_name]
         if 'excluded_datasets' in engine_config and dataset_name in engine_config['excluded_datasets']:
-            print(f'Skipping [{dataset_path}] for [{engine_name}]')
+            print(f'Skipping [{dataset_name}] for [{engine_name}]')
             continue
 
         print(f'Running tests for [{dataset_name}] on [{engine_name}]')
