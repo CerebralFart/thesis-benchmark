@@ -18,6 +18,14 @@ engines = {
         'endpoint': '/bsbm/sparql',
         'port': 3030,
     },
+    'graphdb': {
+        'data_mount_point': '/dataset.ttl',
+        'endpoint': '/repositories/bsbm',
+        'volumes': {
+            '/opt/graphdb/dist/conf/graphdb.license': f'{os.getcwd()}/engines/graphdb/graphdb.license'
+        },
+        'port': 7200,
+    },
     'rdfox': {
         'args': ['-persistence', 'off', 'daemon', '.', '/data/init.rdfox'],
         'data_mount_point': '/data/dataset.ttl',
