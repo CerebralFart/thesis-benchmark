@@ -356,9 +356,9 @@ def execute_query(url, query, url_params=None):
         raise Exception(response.text)
 
 
-def get_query_mix(dataset, repetitions):
+def get_query_mix(repetitions):
     config = engines[preferred_engine]
-    database = Container([f'-v={dataset}:/{config["data_mount_point"]}:ro'] + config['config'])
+    database = Container([f'-v=./datasets/bsbm-1m.ttl:/{config["data_mount_point"]}:ro'] + config['config'])
     if 'healthcheck' not in config or config['healthcheck'] is True:
         database.await_healthy()
     else:

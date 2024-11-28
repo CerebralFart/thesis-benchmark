@@ -40,7 +40,7 @@ proxy = Container(["-p=8080:8080", "--net=host", "benchmark/proxy"])
 
 for dataset_name, dataset_path in datasets.items():
     logging.info(f'Binding queries for [{dataset_name}]')
-    queries = get_query_mix(dataset_path, repetitions + warmup)
+    queries = get_query_mix(repetitions + warmup)
 
     for engine_name in engines:
         engine_config = engines[engine_name]
