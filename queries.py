@@ -4,7 +4,6 @@ import requests
 import time
 import urllib.parse
 
-from datasets import datasets
 from docker import Container
 from engines import engines, preferred_engine
 
@@ -182,7 +181,7 @@ queries = {
                 ?product rdfs:label ?label.
                 ?product rdf:type bsbm:Product.
                 FILTER regex(?label, "%word")
-            } ORDER BY SHA512(?product)
+            }
         """,
         "bindings": prefix + """
             SELECT ?word WHERE {
