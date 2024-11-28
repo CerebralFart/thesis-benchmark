@@ -372,6 +372,10 @@ def get_query_mix(repetitions):
                 f"http://127.0.0.1:8000/{config['endpoint'].lstrip('/')}",
                 query_data['bindings'] + f" LIMIT {repetitions}"
             ).json()['results']['bindings']
+
+            if result == []:
+                raise Exception(f"No bindings for [{query_name}]")
+
             bindings[query_name] = itertools.cycle([{key: value['value'] for (key, value) in binding.items()} for binding in result])
 
         logging.info(f"Substituting bindings")
