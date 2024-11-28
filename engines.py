@@ -58,7 +58,7 @@ for engine in engines:
     engines[engine]['tag'] = tag
 
     config = engines[engine]
-    config_array = [f'-p=8000:{config["port"]}', '--memory=96g', '--shm-size=96g']
+    config_array = [f'-p=8000:{config["port"]}', '--memory=120g', '--shm-size=120g', '--oom-kill-disable']
     if 'env' in config:
         config_array.extend([f'-e{key}={value}' for key, value in config['env'].items()])
 
