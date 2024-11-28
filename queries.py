@@ -364,6 +364,10 @@ def get_query_mix(repetitions):
     else:
         time.sleep(10)
 
+    if 'post_launch' in config:
+        for cmd in config['post_launch']:
+            database.exec(cmd)
+
     try:
         bindings = {}
         for query_name, query_data in queries.items():
