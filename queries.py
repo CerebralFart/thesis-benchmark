@@ -1,4 +1,5 @@
 import itertools
+import logging
 import requests
 import time
 import urllib.parse
@@ -367,14 +368,14 @@ def get_query_mix(dataset, repetitions):
     try:
         bindings = {}
         for query_name, query_data in queries.items():
-            print(f"Getting bindings for [{query_name}]")
+            logging.info(f"Getting bindings for [{query_name}]")
             result = execute_query(
                 f"http://127.0.0.1:8000/{config['endpoint'].lstrip('/')}",
                 query_data['bindings'] + f" LIMIT {repetitions}"
             ).json()['results']['bindings']
             bindings[query_name] = itertools.cycle([{key: value['value'] for (key, value) in binding.items()} for binding in result])
 
-        print(f"Substituting bindings")
+        logging.info(f"Substituting bindings")
         bound_queries = []
         for i in range(repetitions):
             for query_name in queries:
@@ -390,4 +391,4 @@ def get_query_mix(dataset, repetitions):
 
 
 if __name__ == '__main__':
-    print(get_query_mix(datasets[0], 5))
+    logging.info(get_query_mix(5))

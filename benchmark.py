@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import sys
@@ -10,18 +11,23 @@ repetitions = 20
 warmup = 5
 results = TSV("results.tsv", ["engine", "dataset", "query", "mode", "repetition", "resolver (ms)", "proxy (ms)", "result length (b)"])
 
-print("== SYSTEM INFORMATION ==")
-print(f"Jiffy duration: {jiffy_duration_ms}ms")
-print(f"Data file:      {results.path()}")
-print(f"Repetitions:    {repetitions}")
-print(f"Warmup:         {warmup}")
-print()
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+logging.info("== SYSTEM INFORMATION ==")
+logging.info(f"Jiffy duration: {jiffy_duration_ms}ms")
+logging.info(f"Data file:      {results.path()}")
+logging.info(f"Repetitions:    {repetitions}")
+logging.info(f"Warmup:         {warmup}")
 
 from docker import Container, get_running_containers, build
 
 containers = get_running_containers()
 if len(containers) > 0:
-    print("Please stop all docker containers before running this benchmark")
+    logging.error("Please stop all docker containers before running this benchmark")
     sys.exit()
 
 from datasets import datasets
@@ -33,16 +39,16 @@ build(f"{os.getcwd()}/proxy", "benchmark/proxy")
 proxy = Container(["-p=8080:8080", "--net=host", "benchmark/proxy"])
 
 for dataset_name, dataset_path in datasets.items():
-    print(f'Binding queries for [{dataset_name}]')
+    logging.info(f'Binding queries for [{dataset_name}]')
     queries = get_query_mix(dataset_path, repetitions + warmup)
 
     for engine_name in engines:
         engine_config = engines[engine_name]
         if 'excluded_datasets' in engine_config and dataset_name in engine_config['excluded_datasets']:
-            print(f'Skipping [{dataset_name}] for [{engine_name}]')
+            logging.info(f'Skipping [{dataset_name}] for [{engine_name}]')
             continue
 
-        print(f'Running tests for [{dataset_name}] on [{engine_name}]')
+        logging.info(f'Running tests for [{dataset_name}] on [{engine_name}]')
         engine = Container([f'-v={dataset_path}:/{engine_config["data_mount_point"]}:ro'] + engine_config['config'])
         engine_pid = engine.pid()
         if 'healthcheck' not in engine_config or engine_config['healthcheck'] is True:
@@ -54,11 +60,11 @@ for dataset_name, dataset_path in datasets.items():
             for cmd in engine_config['post_launch']:
                 engine.exec(cmd)
 
-        print(f'Engine [{engine_name}] is healthy, starting tests')
+        logging.info(f'Engine [{engine_name}] is healthy, starting tests')
         for mode in ['plain', 'preselection', 'rewriting']:
-            print(f"Evaluating mode [{mode}]")
+            logging.info(f"Evaluating mode [{mode}]")
             for query in queries:
-                print(f'Evaluating [{query["type"]}]')
+                logging.info(f'Evaluating [{query["type"]}]')
                 engine_pre = stat(engine_pid)
                 proxy_pre = stat(proxy.pid())
                 user_id = random.randint(1, 30)
@@ -77,7 +83,7 @@ for dataset_name, dataset_path in datasets.items():
                                   proxy_post['cstime'] - proxy_pre['cstime']) * jiffy_duration_ms
                     results.write([engine_name, dataset_name, query["type"], mode, query["repetition"] - warmup, engine_time, proxy_time, len(result)])
 
-        print(f'Testing done on [{engine_name}], shutting down')
+        logging.info(f'Testing done on [{engine_name}], shutting down')
         engine.remove()
 
 proxy.remove()
