@@ -3,7 +3,7 @@ import os
 
 from docker import build
 
-preferred_engine = 'fuseki'
+preferred_engine = 'rdfox'
 
 engines = {
     'blazegraph': {
