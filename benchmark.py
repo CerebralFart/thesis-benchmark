@@ -6,7 +6,6 @@ import time
 
 from file import TSV
 
-jiffy_duration_ms = 1000 / os.sysconf("SC_CLK_TCK")
 repetitions = 20
 warmup = 5
 results = TSV("results.tsv", ["engine", "dataset", "query", "mode", "repetition", "resolver (ms)", "proxy (ms)", "result length (b)"])
@@ -18,7 +17,6 @@ logging.basicConfig(
 )
 
 logging.info("== SYSTEM INFORMATION ==")
-logging.info(f"Jiffy duration: {jiffy_duration_ms}ms")
 logging.info(f"Data file:      {results.path()}")
 logging.info(f"Repetitions:    {repetitions}")
 logging.info(f"Warmup:         {warmup}")
@@ -32,7 +30,6 @@ if len(containers) > 0:
 
 from datasets import datasets
 from engines import engines
-from os_helpers import stat
 from queries import execute_query, get_query_mix
 
 build(f"{os.getcwd()}/proxy", "benchmark/proxy")
@@ -65,23 +62,21 @@ for dataset_name, dataset_path in datasets.items():
             logging.info(f"Evaluating mode [{mode}]")
             for query in queries:
                 logging.info(f'Evaluating [{query["type"]}]')
-                engine_pre = stat(engine_pid)
-                proxy_pre = stat(proxy.pid())
                 user_id = random.randint(1, 30)
-                result = execute_query(f"http://127.0.0.1:8080/{engine_config['endpoint'].lstrip('/')}", query['query'], {'mode': mode, 'user': f'http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromVendor{user_id}/Vendor{user_id}'}).text
-                engine_post = stat(engine_pid)
-                proxy_post = stat(proxy.pid())
+                result = execute_query(f"http://127.0.0.1:8080/{engine_config['endpoint'].lstrip('/')}", query['query'], {'mode': mode, 'user': f'http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromVendor{user_id}/Vendor{user_id}'})
 
                 if query['repetition'] >= warmup:
-                    engine_time = (engine_post['utime'] - engine_pre['utime'] +
-                                   engine_post['stime'] - engine_pre['stime'] +
-                                   engine_post['cutime'] - engine_pre['cutime'] +
-                                   engine_post['cstime'] - engine_pre['cstime']) * jiffy_duration_ms
-                    proxy_time = (proxy_post['utime'] - proxy_pre['utime'] +
-                                  proxy_post['stime'] - proxy_pre['stime'] +
-                                  proxy_post['cutime'] - proxy_pre['cutime'] +
-                                  proxy_post['cstime'] - proxy_pre['cstime']) * jiffy_duration_ms
-                    results.write([engine_name, dataset_name, query["type"], mode, query["repetition"] - warmup, engine_time, proxy_time, len(result)])
+                    timings = {name.split(';')[0]: int(name.split('=')[1]) for name in result.headers['server-timing'].split(', ')}
+                    results.write([
+                        engine_name,
+                        dataset_name,
+                        query["type"],
+                        mode,
+                        query["repetition"] - warmup,
+                        timings['execution'],
+                        timings['preselection'] if 'preselection' in timings else timings['rewriting'] if 'rewriting' in timings else 0,
+                        len(result.text)
+                    ])
 
         logging.info(f'Testing done on [{engine_name}], shutting down')
         engine.remove()
