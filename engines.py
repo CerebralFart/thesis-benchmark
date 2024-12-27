@@ -27,6 +27,11 @@ engines = {
         },
         'port': 7200,
     },
+    'qlever': {
+        'data_mount_point': '/dataset.ttl',
+        'endpoint': '/',
+        'port': 7001,
+    },
     'rdfox': {
         'args': ['-persistence', 'off', 'daemon', '.', '/data/init.rdfox'],
         'data_mount_point': '/data/dataset.ttl',
