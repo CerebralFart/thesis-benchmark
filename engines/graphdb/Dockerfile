@@ -6,5 +6,5 @@ ADD start.sh /start.sh
 ENTRYPOINT []
 CMD ["/bin/bash", "/start.sh"]
 
-HEALTHCHECK --start-period=1h --start-interval=5s --timeout=1s \
+HEALTHCHECK --start-period=12h --start-interval=5s --timeout=1s \
     CMD curl http://localhost:7200
