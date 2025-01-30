@@ -7,4 +7,4 @@ ADD journal.properties journal.properties
 CMD java -Xmx64g -Xms64g -jar blazegraph.jar /journal
 
 HEALTHCHECK --start-period=1h --start-interval=5s --timeout=1s \
-    CMD wget http://localhost:9999/blazegraph
+    CMD wget -O- http://localhost:9999/blazegraph
